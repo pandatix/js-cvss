@@ -28,5 +28,18 @@ describe('CVSS v4.0 Section 7 test cases', () => {
         expect(() => {
             new cvss40.CVSS40("CVSS:4.0/AC:L/AV:N/PR:H/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N/CR:L/IR:X/AR:L/RE:H/MAV:A/MAC:H/MAT:N/MPR:N/MUI:P/AT:N/MVC:X/MVI:N/MVA:H/MSC:N/MSI:L/MSA:S/E:U/S:N/AU:N/R:I/V:C/U:Green");
         }).toThrow(errors.InvalidVector);
+        // Specific ones not from the specification, only to make sure of the full compliance
+        expect(() => {
+            new cvss40.CVSS40("");
+        }).toThrow(errors.InvalidVector);
+        expect(() => {
+            new cvss40.CVSS40("toto CVSS:4.0/AV:N/AC:L/AT:N/PR:H/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N toto");
+        }).toThrow(errors.InvalidVector);
     });
+});
+
+test('CVSS v4.0 vector', () => {
+    const input = "CVSS:4.0/AV:N/AC:L/AT:N/PR:H/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N/E:U/CR:L/IR:X/AR:L/MAV:A/MAC:H/MAT:N/MPR:N/MUI:P/MVC:X/MVI:N/MVA:H/MSC:N/MSI:L/MSA:S/S:N/AU:N/R:I/V:C/RE:H/U:Green";
+    var vec = new cvss40.CVSS40(input);
+    expect(vec.Vector()).toBe(input);
 });
