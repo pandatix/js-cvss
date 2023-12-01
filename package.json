@@ -1,0 +1,27 @@
+{
+  "name": "@pandatix/js-cvss",
+  "version": "0.0.0",
+  "description": "JavaScript implementation of the CVSS (Common Vulnerability Scoring System) standard from FIRST.ORG.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pandatix/js-cvss.git"
+  },
+  "keywords": [
+    "javascript",
+    "cvss",
+    "cvssv4"
+  ],
+  "author": "Lucas TESSON <lucastesson@protonmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pandatix/js-cvss/issues"
+  },
+  "homepage": "https://github.com/pandatix/js-cvss#readme",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
