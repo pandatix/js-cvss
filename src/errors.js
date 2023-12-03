@@ -1,4 +1,4 @@
-const InvalidVector = new Error("invalid CVSS v4.0 vector");
+const InvalidVector = new Error('invalid CVSS v4.0 vector');
 
 class InvalidMetric {
     constructor(metric) {

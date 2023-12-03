@@ -5,46 +5,44 @@ const errors = require('./errors')
 // of Provider Urgency (U) due to multi-char values.
 const re = /^CVSS:4[.]0(\/AV:[NALP])(\/AC:[LH])(\/AT:[NP])(\/PR:[NLH])(\/UI:[NPA])(\/VC:[HLN])(\/VI:[HLN])(\/VA:[HLN])(\/SC:[HLN])(\/SI:[HLN])(\/SA:[HLN])(\/E:[XAPU])?(\/CR:[XHML])?(\/IR:[XHML])?(\/AR:[XHML])?(\/MAV:[XNALP])?(\/MAC:[XLH])?(\/MAT:[XNP])?(\/MPR:[XNLH])?(\/MUI:[XNPA])?(\/MVC:[XNLH])?(\/MVI:[XNLH])?(\/MVA:[XNLH])?(\/MSC:[XNLH])?(\/MSI:[XNLHS])?(\/MSA:[XNLHS])?(\/S:[XNP])?(\/AU:[XNY])?(\/R:[XAUI])?(\/V:[XDC])?(\/RE:[XLMH])?(\/U:(?:X|Clear|Green|Amber|Red))?$/g;
 
-const isDefined = ((metric) => this.Get(metric) != undefined && this.Get("E") != "X");
-
 // Metrics defined in Table 23
 const metrics = {
     // Base (11 metrics)
-    "AV": ["N", "A", "L", "P"],
-    "AC": ["L", "H"],
-    "AT": ["N", "P"],
-    "PR": ["N", "L", "H"],
-    "UI": ["N", "P", "A"],
-    "VC": ["H", "L", "N"],
-    "VI": ["H", "L", "N"],
-    "VA": ["H", "L", "N"],
-    "SC": ["H", "L", "N"],
-    "SI": ["H", "L", "N"],
-    "SA": ["H", "L", "N"],
+    'AV': ['N', 'A', 'L', 'P'],
+    'AC': ['L', 'H'],
+    'AT': ['N', 'P'],
+    'PR': ['N', 'L', 'H'],
+    'UI': ['N', 'P', 'A'],
+    'VC': ['H', 'L', 'N'],
+    'VI': ['H', 'L', 'N'],
+    'VA': ['H', 'L', 'N'],
+    'SC': ['H', 'L', 'N'],
+    'SI': ['H', 'L', 'N'],
+    'SA': ['H', 'L', 'N'],
     // Threat (1 metric)
-    "E": ["X", "A", "P", "U"],
+    'E': ['X', 'A', 'P', 'U'],
     // Environmental (14 metrics)
-    "CR":  ["X", "H", "M", "L"],
-    "IR":  ["X", "H", "M", "L"],
-    "AR":  ["X", "H", "M", "L"],
-    "MAV": ["X", "N", "A", "L", "P"],
-    "MAC": ["X", "L", "H"],
-    "MAT": ["X", "N", "P"],
-    "MPR": ["X", "N", "L", "H"],
-    "MUI": ["X", "N", "P", "A"],
-    "MVC": ["X", "H", "L", "N"],
-    "MVI": ["X", "H", "L", "N"],
-    "MVA": ["X", "H", "L", "N"],
-    "MSC": ["X", "H", "L", "N"],
-    "MSI": ["X", "S", "H", "L", "N"],
-    "MSA": ["X", "S", "H", "L", "N"],
+    'CR':  ['X', 'H', 'M', 'L'],
+    'IR':  ['X', 'H', 'M', 'L'],
+    'AR':  ['X', 'H', 'M', 'L'],
+    'MAV': ['X', 'N', 'A', 'L', 'P'],
+    'MAC': ['X', 'L', 'H'],
+    'MAT': ['X', 'N', 'P'],
+    'MPR': ['X', 'N', 'L', 'H'],
+    'MUI': ['X', 'N', 'P', 'A'],
+    'MVC': ['X', 'H', 'L', 'N'],
+    'MVI': ['X', 'H', 'L', 'N'],
+    'MVA': ['X', 'H', 'L', 'N'],
+    'MSC': ['X', 'H', 'L', 'N'],
+    'MSI': ['X', 'S', 'H', 'L', 'N'],
+    'MSA': ['X', 'S', 'H', 'L', 'N'],
     // Supplemental (6 metrics)
-    "S":  ["X", "N", "P"],
-    "AU": ["X", "N", "Y"],
-    "R":  ["X", "A", "U", "I"],
-    "V":  ["X", "D", "C"],
-    "RE": ["X", "L", "M", "H"],
-    "U":  ["X", "Clear", "Green", "Amber", "Red"],
+    'S':  ['X', 'N', 'P'],
+    'AU': ['X', 'N', 'Y'],
+    'R':  ['X', 'A', 'U', 'I'],
+    'V':  ['X', 'D', 'C'],
+    'RE': ['X', 'L', 'M', 'H'],
+    'U':  ['X', 'Clear', 'Green', 'Amber', 'Red'],
 }
 
 class CVSS40 {
@@ -70,20 +68,20 @@ class CVSS40 {
                 continue;
             }
             match = match.slice(1);
-            var [key, value] = match.split(":");
+            var [key, value] = match.split(':');
             this.metrics[key] = value;
         }
     }
 
     Vector() {
-        var vector = "CVSS:4.0";
+        var vector = 'CVSS:4.0';
         for (const [om] of Object.entries(metrics)) {
             var metric = this.Get(om);
-            // Add the value iif was set and is not "X" (Not Defined)
-            if (metric == undefined || metric == "X") {
+            // Add the value iif was set and is not 'X' (Not Defined)
+            if (metric == undefined || metric == 'X') {
                continue;
            }
-           vector = vector.concat("/", om, ":", metric);
+           vector = vector.concat('/', om, ':', metric);
         }
         return vector;
     }
@@ -104,19 +102,20 @@ class CVSS40 {
     }
     Score() { }
     Nomenclature() {
-        var t = (["E"]).every(isDefined);
-        var e = (["CR", "IR", "AR", "MAV", "MAC", "MAT", "MPR", "MUI", "MVC", "MVI", "MVA", "MSC", "MSI", "MSA"]).every(isDefined);
+        const isDefined = ((metric) => this.Get(metric) != undefined && this.Get('E') != 'X');
+        var t = (['E']).every(isDefined);
+        var e = (['CR', 'IR', 'AR', 'MAV', 'MAC', 'MAT', 'MPR', 'MUI', 'MVC', 'MVI', 'MVA', 'MSC', 'MSI', 'MSA']).every(isDefined);
 
         if (t) {
             if (e) {
-                return "CVSS-BTE";
+                return 'CVSS-BTE';
             }
-            return "CVSS-BT";
+            return 'CVSS-BT';
         }
         if (e) {
-            return "CVSS-BE";
+            return 'CVSS-BE';
         }
-        return "CVSS-B";
+        return 'CVSS-B';
     }
 };
 
@@ -125,18 +124,18 @@ const Rating = function (score) {
         throw new ErrOutOfBoundsScore();
     }
     if (score >= 9.0) {
-        return "CRITICAL"
+        return 'CRITICAL'
     }
     if (score >= 7.0) {
-        return "HIGH"
+        return 'HIGH'
     }
     if (score >= 4.0) {
-        return "MEDIUM"
+        return 'MEDIUM'
     }
     if (score >= 0.1) {
-        return "LOW"
+        return 'LOW'
     }
-    return "NONE"
+    return 'NONE'
 }
 
 module.exports = { CVSS40, Rating };
