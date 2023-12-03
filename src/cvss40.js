@@ -5,6 +5,8 @@ const errors = require('./errors')
 // of Provider Urgency (U) due to multi-char values.
 const re = /^CVSS:4[.]0(\/AV:[NALP])(\/AC:[LH])(\/AT:[NP])(\/PR:[NLH])(\/UI:[NPA])(\/VC:[HLN])(\/VI:[HLN])(\/VA:[HLN])(\/SC:[HLN])(\/SI:[HLN])(\/SA:[HLN])(\/E:[XAPU])?(\/CR:[XHML])?(\/IR:[XHML])?(\/AR:[XHML])?(\/MAV:[XNALP])?(\/MAC:[XLH])?(\/MAT:[XNP])?(\/MPR:[XNLH])?(\/MUI:[XNPA])?(\/MVC:[XNLH])?(\/MVI:[XNLH])?(\/MVA:[XNLH])?(\/MSC:[XNLH])?(\/MSI:[XNLHS])?(\/MSA:[XNLHS])?(\/S:[XNP])?(\/AU:[XNY])?(\/R:[XAUI])?(\/V:[XDC])?(\/RE:[XLMH])?(\/U:(?:X|Clear|Green|Amber|Red))?$/g;
 
+const isDefined = ((metric) => this.Get(metric) != undefined && this.Get("E") != "X");
+
 // Metrics defined in Table 23
 const metrics = {
     // Base (11 metrics)
@@ -101,7 +103,21 @@ class CVSS40 {
         throw new errors.InvalidMetric(metric);
     }
     Score() { }
-    Nomenclature() { }
+    Nomenclature() {
+        var t = (["E"]).every(isDefined);
+        var e = (["CR", "IR", "AR", "MAV", "MAC", "MAT", "MPR", "MUI", "MVC", "MVI", "MVA", "MSC", "MSI", "MSA"]).every(isDefined);
+
+        if (t) {
+            if (e) {
+                return "CVSS-BTE";
+            }
+            return "CVSS-BT";
+        }
+        if (e) {
+            return "CVSS-BE";
+        }
+        return "CVSS-B";
+    }
 };
 
 const Rating = function (score) {
