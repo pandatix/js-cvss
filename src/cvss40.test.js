@@ -1,5 +1,5 @@
 const cvss40 = require('./cvss40');
-const errors = require('./errors')
+const errors = require('./errors');
 
 describe('CVSS v4.0 Section 7 test cases', () => {
     test('valid vectors', () => {
@@ -54,10 +54,10 @@ test('Setter', () => {
         vec.Set('SA', 'H');
     });
     expect(() => {
-        vec.Set('invalid', 'invalid')
+        vec.Set('invalid', 'invalid');
     }).toThrow();
     expect(() => {
-        vec.Set('SA', 'invalid')
+        vec.Set('SA', 'invalid');
     });
 });
 

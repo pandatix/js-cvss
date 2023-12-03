@@ -1,4 +1,4 @@
-const errors = require('./errors')
+const errors = require('./errors');
 
 // Comes from https://www.first.org/cvss/cvss-v4.0.json, slightly modified
 // to match the metric groups without false-positives and to avoid double-capture
@@ -43,7 +43,7 @@ const metrics = {
     'V':  ['X', 'D', 'C'],
     'RE': ['X', 'L', 'M', 'H'],
     'U':  ['X', 'Clear', 'Green', 'Amber', 'Red'],
-}
+};
 
 class CVSS40 {
     constructor(vector='CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N') {
@@ -124,18 +124,18 @@ const Rating = function (score) {
         throw new ErrOutOfBoundsScore();
     }
     if (score >= 9.0) {
-        return 'CRITICAL'
+        return 'CRITICAL';
     }
     if (score >= 7.0) {
-        return 'HIGH'
+        return 'HIGH';
     }
     if (score >= 4.0) {
-        return 'MEDIUM'
+        return 'MEDIUM';
     }
     if (score >= 0.1) {
-        return 'LOW'
+        return 'LOW';
     }
-    return 'NONE'
+    return 'NONE';
 }
 
 module.exports = { CVSS40, Rating };
