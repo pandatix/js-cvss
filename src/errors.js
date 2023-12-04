@@ -1,4 +1,5 @@
 const InvalidVector = new Error('invalid CVSS v4.0 vector');
+const OutOfBoundsScore = new Error('score out of bounds');
 
 class InvalidMetric {
     constructor(metric) {
@@ -19,4 +20,4 @@ class InvalidMetricValue {
     }
 }
 
-module.exports = { InvalidVector, InvalidMetric, InvalidMetricValue };
+module.exports = { InvalidVector, OutOfBoundsScore, InvalidMetric, InvalidMetricValue };

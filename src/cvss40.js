@@ -6,8 +6,19 @@ const lookup = require('./lookup');
 // of Provider Urgency (U) due to multi-char values.
 const re = /^CVSS:4[.]0(\/AV:[NALP])(\/AC:[LH])(\/AT:[NP])(\/PR:[NLH])(\/UI:[NPA])(\/VC:[HLN])(\/VI:[HLN])(\/VA:[HLN])(\/SC:[HLN])(\/SI:[HLN])(\/SA:[HLN])(\/E:[XAPU])?(\/CR:[XHML])?(\/IR:[XHML])?(\/AR:[XHML])?(\/MAV:[XNALP])?(\/MAC:[XLH])?(\/MAT:[XNP])?(\/MPR:[XNLH])?(\/MUI:[XNPA])?(\/MVC:[XNLH])?(\/MVI:[XNLH])?(\/MVA:[XNLH])?(\/MSC:[XNLH])?(\/MSI:[XNLHS])?(\/MSA:[XNLHS])?(\/S:[XNP])?(\/AU:[XNY])?(\/R:[XAUI])?(\/V:[XDC])?(\/RE:[XLMH])?(\/U:(?:X|Clear|Green|Amber|Red))?$/g;
 
+/**
+ * Implementation of the CVSS v4.0 specification (https://www.first.org/cvss/v4.0/specification-document).
+ */
 class CVSS40 {
-    #metrics = {};
+    #metrics = {
+        // Set default values of non-mandatory metrics : Not Defined (X)
+        // => Threat
+        'E': 'X',
+        // => Environmental
+        'CR': 'X', 'IR': 'X', 'AR': 'X', 'MAV': 'X', 'MAC': 'X', 'MAT': 'X', 'MPR': 'X', 'MUI': 'X', 'MVC': 'X', 'MVI': 'X', 'MVA': 'X', 'MSC': 'X', 'MSI': 'X', 'MSA': 'X',
+        // => Supplemental
+        'S': 'X', 'AU': 'X', 'R': 'X', 'V': 'X', 'RE': 'X', 'U': 'X',
+    };
 
     constructor(vector = 'CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N') {
         this.#parse(vector);
@@ -34,6 +45,11 @@ class CVSS40 {
         }
     }
 
+    /**
+     * Return the vector string representation of the CVSS v4.0 object.
+     * 
+     * @return {string} The vector string representation.
+     */
     Vector() {
         var vector = 'CVSS:4.0';
         for (const [om] of Object.entries(lookup.table23)) {
@@ -46,9 +62,28 @@ class CVSS40 {
         }
         return vector;
     }
+    /**
+     * Get the metric value given its value (e.g. 'AV').
+     * 
+     * @param {string} metric The metric to get the value of.
+     * @return {?string} The corresponding metric value, or undefined if the metric does not exist.
+     * @throws {errors.InvalidMetric} Metric does not exist.
+     */
     Get(metric) {
-        return this.#metrics[metric];
+        var v = this.#metrics[metric];
+        if (v == undefined) {
+            throw new errors.InvalidMetric(metric);
+        }
+        return v;
     }
+    /**
+     * Set the metric value given its key and value (e.g. 'AV' and 'L').
+     * 
+     * @param {string} metric The metric to set the value of.
+     * @param {string} value The corresponding metric value.
+     * @throws {errors.InvalidMetric} Metric does not exist.
+     * @throws {errors.InvalidMetricValue} Metric has invalid value.
+     */
     Set(metric, value) {
         for (const [om, values] of Object.entries(looku.table23)) {
             if (om == metric) {
@@ -61,8 +96,15 @@ class CVSS40 {
         }
         throw new errors.InvalidMetric(metric);
     }
-    // Implementation internals are largely based upon https://github.com/pandatix/go-cvss
-    // submodule 40.
+    /**
+     * Compute the CVSS v4.0 Score of the current object, given its metrics and their
+     * corresponding values.
+     * 
+     * The implementation internals are largely based upon https://github.com/pandatix/go-cvss
+     * submodule 40.
+     * 
+     * @return {number} The score (between 0.0 and 10.0 both included).
+     */
     Score() {
         // If the vulnerability does not affect the system AND the subsequent
         // system, there is no reason to try scoring what has no risk and impact.
@@ -182,7 +224,7 @@ class CVSS40 {
                         eq3eq6svdst = vcsvdst + visvdst + vasvdst + crsvdst + irsvdst + arsvdst;
                         eq4svdst = scsvdst + sisvdst + sasvdst;
                         // Don't need to compute E severity distance as the maximum will
-					    // always remain the same due to only 1 dimension involved in EQ5.
+                        // always remain the same due to only 1 dimension involved in EQ5.
                         eq5svdst = 0;
                         break;
                     }
@@ -203,7 +245,7 @@ class CVSS40 {
         eq3eq6msd *= eq3eq6prop;
         eq4msd *= eq4prop;
         eq5msd *= eq5prop;
-        
+
         // 2 - Compute mean
         var mean = 0;
         if (lower != 0) {
@@ -213,8 +255,14 @@ class CVSS40 {
         // 3 - Compute score
         return Number(roundup(eqsv - mean));
     }
+    /**
+     * Gives the nomenclature of the current CVSS v4.0 object i.e. its structure
+     * according to the Base, Threat and Environmental metric groups.
+     * 
+     * @return {string} The nomenclature string.
+     */
     Nomenclature() {
-        const isDefined = ((metric) => this.Get(metric) != undefined && this.Get('E') != 'X');
+        const isDefined = ((metric) => this.Get(metric) != 'X');
         var t = (['E']).some(isDefined);
         var e = (['CR', 'IR', 'AR', 'MAV', 'MAC', 'MAT', 'MPR', 'MUI', 'MVC', 'MVI', 'MVA', 'MSC', 'MSI', 'MSA']).some(isDefined);
 
@@ -231,22 +279,25 @@ class CVSS40 {
     }
 
     #getReal(metric) {
-        var v = this.Get('M' + metric)
+        // Check if the environmental metric exists and is defined
+        var v = this.Get('M' + metric);
         if (v != undefined && v != 'X') {
-            return v
+            return v;
         }
-        v = this.Get(metric)
-        if (v == undefined) {
-            switch (metric) {
-                case 'CR':
-                case 'IR':
-                case 'AR':
-                    return 'H';
-                case 'E':
-                    return 'A';
-            }
+        // Fallback to the base metric
+        v = this.Get(metric);
+        if (v != 'X') {
+            return v;
         }
-        return v
+        // If it was not a base metric then defaults
+        switch (metric) {
+            case 'CR':
+            case 'IR':
+            case 'AR':
+                return 'H';
+            case 'E':
+                return 'A';
+        }
     }
     #macrovector() {
         var av = this.#getReal('AV');
@@ -258,14 +309,12 @@ class CVSS40 {
         var vi = this.#getReal('VI');
         var va = this.#getReal('VA');
         var sc = this.#getReal('SC');
-        var msi = this.Get('MSI');
         var si = this.#getReal('SI');
-        var msa = this.Get('MSA');
         var sa = this.#getReal('SA');
-        var e = this.Get('E');
-        var cr = this.Get('CR');
-        var ir = this.Get('IR');
-        var ar = this.Get('AR');
+        var e = this.#getReal('E');
+        var cr = this.#getReal('CR');
+        var ir = this.#getReal('IR');
+        var ar = this.#getReal('AR');
 
         // Compte MacroVectors
         // => EQ1
@@ -296,17 +345,17 @@ class CVSS40 {
 
         // EQ4
         var eq4 = '0';
-        if (msi == 'S' || msa == 'S') {
+        if (si == 'S' || sa == 'S') {
             eq4 = '0';
-        } else if (!(msi == 'S' || msa == 'S') && (sc == 'H' || si == 'H' || sa == 'H')) {
+        } else if (!(si == 'S' || sa == 'S') && (sc == 'H' || si == 'H' || sa == 'H')) {
             eq4 = '1';
-        } else if (!(msi == 'S' || msa == 'S') && !(sc == 'H' || si == 'H' || sa == 'H')) {
+        } else if (!(si == 'S' || sa == 'S') && !(sc == 'H' || si == 'H' || sa == 'H')) {
             eq4 = '2';
         }
 
         // EQ5
         var eq5 = '0';
-        if (e == 'A' || e == 'X' || e == undefined) {
+        if (e == 'A' || e == 'X') {
             eq5 = '0';
         } else if (e == 'P') {
             eq5 = '1';
@@ -316,9 +365,9 @@ class CVSS40 {
 
         // EQ6
         var eq6 = '0';
-        var crh = (cr == 'H' || cr == 'X' || cr == undefined);
-        var irh = (ir == 'H' || ir == 'X' || ir == undefined);
-        var arh = (ar == 'H' || ar == 'X' || ar == undefined);
+        var crh = (cr == 'H' || cr == 'X');
+        var irh = (ir == 'H' || ir == 'X');
+        var arh = (ar == 'H' || ar == 'X');
         if ((crh && vc == 'H') || (irh && vi == 'H') || (arh && va == 'H')) {
             eq6 = '0';
         } else if (!(crh && vc == 'H') && !(irh && vi == 'H') && !(arh && va == 'H')) {
@@ -343,13 +392,20 @@ const getValue = function (partial, metric) {
     }
 }
 
-const roundup = function(score) {
+const roundup = function (score) {
     return score.toFixed(1);
 }
 
+/**
+ * Give the corresponding rating of the provided score.
+ * 
+ * @param {string} score The score to rate. 
+ * @return {'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE'} The rating.
+ * @throws {errors.OutOfBoundsScore} When the score is out of bounds.
+ */
 const Rating = function (score) {
     if (score < 0 || score > 10) {
-        throw new ErrOutOfBoundsScore();
+        throw new errors.OutOfBoundsScore();
     }
     if (score >= 9.0) {
         return 'CRITICAL';
