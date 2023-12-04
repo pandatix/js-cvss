@@ -79,3 +79,66 @@ describe('Nomenclature', () => {
         expect(vec.Nomenclature()).toBe('CVSS-BTE');
     });
 });
+
+describe('Score', () => {
+    test('full-impact', () => {
+        var vec = new cvss40.CVSS40('CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H')
+        expect(vec.Score()).toBe(10.0);
+        expect(vec.Nomenclature()).toBe('CVSS-B');
+    });
+    test('no-impact', () => {
+        var vec = new cvss40.CVSS40('CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N')
+        expect(vec.Score()).toBe(0.0);
+        expect(vec.Nomenclature()).toBe('CVSS-B');
+    });
+    test('full-system-no-subsequent', () => {
+        var vec = new cvss40.CVSS40('CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N')
+        expect(vec.Score()).toBe(9.3);
+        expect(vec.Nomenclature()).toBe('CVSS-B');
+    });
+    test('no-system-full-subsequent', () => {
+        var vec = new cvss40.CVSS40('CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:H/SI:H/SA:H')
+        expect(vec.Score()).toBe(7.9);
+        expect(vec.Nomenclature()).toBe('CVSS-B');
+    });
+    test('with-t', () => {
+        // This one verify the "full-impact" test case, with Threat intelligence
+		// information, is effectively lowered.
+        var vec = new cvss40.CVSS40('CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H/E:U')
+        expect(vec.Score()).toBe(9.1);
+        expect(vec.Nomenclature()).toBe('CVSS-BT');
+    });
+    test('with-e', () => {
+        // This one verify the "full-impact" test case, with Threat intelligence
+		// information, is effectively lowered.
+        var vec = new cvss40.CVSS40('CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H/MVI:L/MSA:S')
+        expect(vec.Score()).toBe(9.8);
+        expect(vec.Nomenclature()).toBe('CVSS-BE');
+    });
+    test('smol', () => {
+        // This one only has a funny name :)
+        var vec = new cvss40.CVSS40('CVSS:4.0/AV:P/AC:H/AT:P/PR:H/UI:A/VC:L/VI:N/VA:N/SC:N/SI:N/SA:N')
+        expect(vec.Score()).toBe(1.0);
+        expect(vec.Nomenclature()).toBe('CVSS-B');
+    });
+    // Those ones used Clement as a random source.
+    // It enabled detecting multiple internal issues to the github.com/pandatix/go-cvss
+    // Go module and a typo in the official calculator a week before publication.
+    // Those have been adopted as part of the unit test corpus and should be kept for
+    // regression testing.
+    test('clement-b', () => {
+        var vec = new cvss40.CVSS40('CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:P/VC:N/VI:H/VA:H/SC:N/SI:L/SA:L');
+        expect(vec.Score()).toBe(5.2);
+        expect(vec.Nomenclature()).toBe('CVSS-B');
+    });
+    test('clement-bte', () => {
+        var vec = new cvss40.CVSS40('CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:P/VC:N/VI:H/VA:H/SC:N/SI:L/SA:L/E:P/CR:H/IR:M/AR:H/MAV:A/MAT:P/MPR:N/MVI:H/MVA:N/MSI:H/MSA:N/S:N/V:C/U:Amber')
+        expect(vec.Score()).toBe(4.7);
+        expect(vec.Nomenclature()).toBe('CVSS-BTE');
+    });
+    test('reg-deptheq3eq6', () => {
+        var vec = new cvss40.CVSS40('CVSS:4.0/AV:N/AC:H/AT:N/PR:H/UI:N/VC:N/VI:N/VA:H/SC:H/SI:H/SA:H/CR:L/IR:L/AR:L')
+        expect(vec.Score()).toBe(5.8);
+        expect(vec.Nomenclature()).toBe('CVSS-BE');
+    });
+});
