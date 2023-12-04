@@ -279,15 +279,16 @@ class CVSS40 {
     }
 
     #getReal(metric) {
-        // Check if the environmental metric exists and is defined
-        var v = this.Get('M' + metric);
-        if (v != undefined && v != 'X') {
-            return v;
+        if (['AV', 'AC', 'AT', 'PR', 'UI', 'VC', 'VI', 'VA', 'SC', 'SI', 'SA'].includes(metric)) {
+            var v = this.Get('M' + metric);
+            if (v != 'X') {
+                return v
+            }
+            return this.Get(metric);
         }
-        // Fallback to the base metric
-        v = this.Get(metric);
+        var v = this.Get(metric);
         if (v != 'X') {
-            return v;
+            return v
         }
         // If it was not a base metric then defaults
         switch (metric) {
