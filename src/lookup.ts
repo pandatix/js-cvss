@@ -1,5 +1,5 @@
 // Metrics defined in Table 23.
-const table23 = {
+export const table23 = {
     // Base (11 metrics)
     'AV': ['N', 'A', 'L', 'P'],
     'AC': ['L', 'H'],
@@ -38,7 +38,7 @@ const table23 = {
     'U': ['X', 'Clear', 'Green', 'Amber', 'Red'],
 };
 
-const highestSeverityVectors = {
+export const highestSeverityVectors = {
     // EQ1 - Table 24
     1: {
         0: ['AV:N/PR:N/UI:N'],
@@ -78,7 +78,7 @@ const highestSeverityVectors = {
     },
 };
 
-const sevIdx = {
+export const sevIdx = {
     // Base metrics
     'AV': ['N', 'A', 'L', 'P'],
     'AC': ['L', 'H'],
@@ -100,7 +100,7 @@ const sevIdx = {
 };
 
 // Depths are re-computed and has been checked in github.com/pandatix/go-cvss
-const depth = {
+export const depth = {
     // EQ1
     1: {
         0: 0,
@@ -141,7 +141,7 @@ const depth = {
 };
 
 // MacroVectors maximum score given each EQuivalency sets.
-const mv = {
+export const mv = {
     '000000': 10,
     '000001': 9.9,
     '000010': 9.8,
@@ -413,5 +413,3 @@ const mv = {
     '212211': 0.3,
     '212221': 0.1,
 }
-
-module.exports = { table23, highestSeverityVectors, sevIdx, depth, mv };

@@ -1,5 +1,5 @@
-const errors = require('./errors');
-const lookup = require('./lookup');
+import * as errors from './errors';
+import * as lookup from './lookup';
 
 // Comes from https://www.first.org/cvss/cvss-v4.0.json, slightly modified
 // to match the metric groups without false-positives and to avoid double-capture
@@ -9,8 +9,8 @@ const re = /^CVSS:4[.]0(\/AV:[NALP])(\/AC:[LH])(\/AT:[NP])(\/PR:[NLH])(\/UI:[NPA
 /**
  * Implementation of the CVSS v4.0 specification (https://www.first.org/cvss/v4.0/specification-document).
  */
-class CVSS40 {
-    #metrics = {
+export class CVSS40 {
+    private _metrics = {
         // Set default values of non-mandatory metrics : Not Defined (X)
         // => Threat
         'E': 'X',
@@ -21,27 +21,27 @@ class CVSS40 {
     };
 
     constructor(vector = 'CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N') {
-        this.#parse(vector);
+        this.parse(vector);
     }
 
     // parse makes use of the regex for code simplicity, but we could
     // use the `metrics` constant to provide better accurate error messages.
-    #parse(vector) {
+    private parse(vector: string) {
         // Ensure input is valid according to the regular expression
-        var matches = [...vector.matchAll(re)][0];
-        if (matches == undefined) {
-            throw errors.InvalidVector;
+        let matches = [...vector.matchAll(re)][0];
+        if (matches == null) {
+            throw new Error('invalid CVSS v4.0 vector');
         }
         // Skip prefix
         matches.shift();
         // Parse each metric group
-        for (var match of matches) {
+        for (let match of matches) {
             if (match == undefined) {
                 continue;
             }
             match = match.slice(1);
-            var [key, value] = match.split(':');
-            this.#metrics[key] = value;
+            const pts = match.split(':');
+            this._metrics[pts[0]] = pts[1];
         }
     }
 
@@ -51,9 +51,9 @@ class CVSS40 {
      * @return {string} The vector string representation.
      */
     Vector() {
-        var vector = 'CVSS:4.0';
+        let vector = 'CVSS:4.0';
         for (const [om] of Object.entries(lookup.table23)) {
-            var metric = this.Get(om);
+            const metric = this.Get(om);
             // Add the value iif was set and is not 'X' (Not Defined)
             if (metric == undefined || metric == 'X') {
                 continue;
@@ -66,11 +66,11 @@ class CVSS40 {
      * Get the metric value given its value (e.g. 'AV').
      * 
      * @param {string} metric The metric to get the value of.
-     * @return {?string} The corresponding metric value, or undefined if the metric does not exist.
+     * @return {string} The corresponding metric value.
      * @throws {errors.InvalidMetric} Metric does not exist.
      */
-    Get(metric) {
-        var v = this.#metrics[metric];
+    Get(metric: string): string {
+        const v = this._metrics[metric];
         if (v == undefined) {
             throw new errors.InvalidMetric(metric);
         }
@@ -84,11 +84,11 @@ class CVSS40 {
      * @throws {errors.InvalidMetric} Metric does not exist.
      * @throws {errors.InvalidMetricValue} Metric has invalid value.
      */
-    Set(metric, value) {
-        for (const [om, values] of Object.entries(looku.table23)) {
+    Set(metric: string, value: string) {
+        for (const [om, values] of Object.entries(lookup.table23)) {
             if (om == metric) {
-                if (values.any(value)) {
-                    this.#metrics[metric] = value;
+                if (values.indexOf(value) != -1) {
+                    this._metrics[metric] = value;
                     return;
                 }
                 throw new errors.InvalidMetricValue(metric, value);
@@ -105,43 +105,43 @@ class CVSS40 {
      * 
      * @return {number} The score (between 0.0 and 10.0 both included).
      */
-    Score() {
+    Score(): number {
         // If the vulnerability does not affect the system AND the subsequent
         // system, there is no reason to try scoring what has no risk and impact.
-        if (['VC', 'VI', 'VA', 'SC', 'SI', 'SA'].every((met) => this.#getReal(met) == "N")) {
+        if (['VC', 'VI', 'VA', 'SC', 'SI', 'SA'].every((met) => this.getReal(met) == "N")) {
             return 0.0
         }
 
-        var mv = this.#macrovector();
-        var eq1 = Number(mv[0]);
-        var eq2 = Number(mv[1]);
-        var eq3 = Number(mv[2]);
-        var eq4 = Number(mv[3]);
-        var eq5 = Number(mv[4]);
-        var eq6 = Number(mv[5]);
-        var eqsv = lookup.mv[mv];
+        const mv = this.macrovector();
+        const eq1 = Number(mv[0]);
+        const eq2 = Number(mv[1]);
+        const eq3 = Number(mv[2]);
+        const eq4 = Number(mv[3]);
+        const eq5 = Number(mv[4]);
+        const eq6 = Number(mv[5]);
+        const eqsv: number = lookup.mv[mv];
 
         // Compute EQs next lower MacroVector
         // -> As the lower the EQ value is the bigger, the next lower MacroVector
         //    would be +1 to this one
-        // -> If not possible (level+1 > #level), it is set to NaN
-        var lower = 0;
-        var eq1nlm = NaN;
+        // -> If not possible (level+1 > level), it is set to NaN
+        let lower = 0;
+        let eq1nlm = NaN;
         if (eq1 < 2) { // 2 = maximum level for EQ1
             eq1nlm = lookup.mv[String(eq1 + 1) + String(eq2) + String(eq3) + String(eq4) + String(eq5) + String(eq6)];
             lower++;
         }
-        var eq2nlm = NaN;
+        let eq2nlm = NaN;
         if (eq2 < 1) { // 1 = maximum level for EQ2
             eq2nlm = lookup.mv[String(eq1) + String(eq2 + 1) + String(eq3) + String(eq4) + String(eq5) + String(eq6)];
             lower++;
         }
-        var eq4nlm = NaN;
+        let eq4nlm = NaN;
         if (eq4 < 2) { // 2 = maximum level for EQ4
             eq4nlm = lookup.mv[String(eq1) + String(eq2) + String(eq3) + String(eq4 + 1) + String(eq5) + String(eq6)];
             lower++;
         }
-        var eq5nlm = NaN;
+        let eq5nlm = NaN;
         if (eq5 < 2) { // 2 = maximum level for EQ5
             eq5nlm = lookup.mv[String(eq1) + String(eq2) + String(eq3) + String(eq4) + String(eq5 + 1) + String(eq6)];
             lower++;
@@ -149,7 +149,7 @@ class CVSS40 {
         // /!\ As EQ3 and EQ6 are related, we can't do the same as it could produce
         // eq3=2 and eq6=0 which is impossible thus will have a lookup (for EQ3) of 0.
         // This would fail the further computations.
-        var eq3eq6nlm = NaN;
+        let eq3eq6nlm = NaN;
         if (eq3 == 1 && eq6 == 1) {
             // 11 -> 21
             eq3eq6nlm = lookup.mv[String(eq1) + String(eq2) + String(eq3 + 1) + String(eq4) + String(eq5) + String(eq6)];
@@ -169,22 +169,22 @@ class CVSS40 {
         }
 
         // 1.a - Compute maximal scoring (absolute) differences
-        const msd = ((nlm) => {
-            var msd = Math.abs(nlm - eqsv);
+        const msd = ((nlm: number): number => {
+            let msd = Math.abs(nlm - eqsv);
             if (isNaN(msd)) {
                 return 0;
             }
             return msd;
         })
-        var eq1msd = msd(eq1nlm);
-        var eq2msd = msd(eq2nlm);
-        var eq3eq6msd = msd(eq3eq6nlm);
-        var eq4msd = msd(eq4nlm);
-        var eq5msd = msd(eq5nlm);
+        let eq1msd = msd(eq1nlm);
+        let eq2msd = msd(eq2nlm);
+        let eq3eq6msd = msd(eq3eq6nlm);
+        let eq4msd = msd(eq4nlm);
+        let eq5msd = msd(eq5nlm);
 
         // 1.b - Compute the severity distances of the to-be scored vectors
         //       to a highest AND higher severity vector in the MacroVector
-        var eq1svdst = 0, eq2svdst = 0, eq3eq6svdst = 0, eq4svdst = 0, eq5svdst = 0;
+        let eq1svdst = 0, eq2svdst = 0, eq3eq6svdst = 0, eq4svdst = 0, eq5svdst = 0;
         for (const eq1mx of lookup.highestSeverityVectors[1][eq1]) {
             for (const eq2mx of lookup.highestSeverityVectors[2][eq2]) {
                 for (const eq3eq6mx of lookup.highestSeverityVectors[3][eq3][eq6]) {
@@ -193,27 +193,27 @@ class CVSS40 {
                         // so the highest of a MV's EQ is always unique, such that iterating
                         // over it would lead to nothing but cognitive complexity.
 
-                        var partial = [eq1mx, eq2mx, eq3eq6mx, eq4mx].join('/');
+                        const partial = [eq1mx, eq2mx, eq3eq6mx, eq4mx].join('/');
 
                         // Compute severity distances
-                        var avsvdst = this.#severityDistance('AV', this.#getReal('AV'), getValue(partial, 'AV'));
-                        var prsvdst = this.#severityDistance('PR', this.#getReal('PR'), getValue(partial, 'PR'));
-                        var uisvdst = this.#severityDistance('UI', this.#getReal('UI'), getValue(partial, 'UI'));
+                        const avsvdst = this.severityDistance('AV', this.getReal('AV'), getValue(partial, 'AV'));
+                        const prsvdst = this.severityDistance('PR', this.getReal('PR'), getValue(partial, 'PR'));
+                        const uisvdst = this.severityDistance('UI', this.getReal('UI'), getValue(partial, 'UI'));
 
-                        var acsvdst = this.#severityDistance('AC', this.#getReal('AC'), getValue(partial, 'AC'));
-                        var atsvdst = this.#severityDistance('AT', this.#getReal('AT'), getValue(partial, 'AT'));
+                        const acsvdst = this.severityDistance('AC', this.getReal('AC'), getValue(partial, 'AC'));
+                        const atsvdst = this.severityDistance('AT', this.getReal('AT'), getValue(partial, 'AT'));
 
-                        var vcsvdst = this.#severityDistance('VC', this.#getReal('VC'), getValue(partial, 'VC'));
-                        var visvdst = this.#severityDistance('VI', this.#getReal('VI'), getValue(partial, 'VI'));
-                        var vasvdst = this.#severityDistance('VA', this.#getReal('VA'), getValue(partial, 'VA'));
+                        const vcsvdst = this.severityDistance('VC', this.getReal('VC'), getValue(partial, 'VC'));
+                        const visvdst = this.severityDistance('VI', this.getReal('VI'), getValue(partial, 'VI'));
+                        const vasvdst = this.severityDistance('VA', this.getReal('VA'), getValue(partial, 'VA'));
 
-                        var scsvdst = this.#severityDistance('SC', this.#getReal('SC'), getValue(partial, 'SC'));
-                        var sisvdst = this.#severityDistance('SI', this.#getReal('SI'), getValue(partial, 'SI'));
-                        var sasvdst = this.#severityDistance('SA', this.#getReal('SA'), getValue(partial, 'SA'));
+                        const scsvdst = this.severityDistance('SC', this.getReal('SC'), getValue(partial, 'SC'));
+                        const sisvdst = this.severityDistance('SI', this.getReal('SI'), getValue(partial, 'SI'));
+                        const sasvdst = this.severityDistance('SA', this.getReal('SA'), getValue(partial, 'SA'));
 
-                        var crsvdst = this.#severityDistance('CR', this.#getReal('CR'), getValue(partial, 'CR'));
-                        var irsvdst = this.#severityDistance('IR', this.#getReal('IR'), getValue(partial, 'IR'));
-                        var arsvdst = this.#severityDistance('AR', this.#getReal('AR'), getValue(partial, 'AR'));
+                        const crsvdst = this.severityDistance('CR', this.getReal('CR'), getValue(partial, 'CR'));
+                        const irsvdst = this.severityDistance('IR', this.getReal('IR'), getValue(partial, 'IR'));
+                        const arsvdst = this.severityDistance('AR', this.getReal('AR'), getValue(partial, 'AR'));
 
                         if ([avsvdst, prsvdst, uisvdst, acsvdst, atsvdst, vcsvdst, visvdst, vasvdst, scsvdst, sisvdst, sasvdst, crsvdst, irsvdst, arsvdst].some((met) => met < 0)) {
                             continue;
@@ -233,11 +233,11 @@ class CVSS40 {
         }
 
         // 1.c - Compute proportion of the distance
-        var eq1prop = eq1svdst / (lookup.depth[1][eq1] + 1);
-        var eq2prop = eq2svdst / (lookup.depth[2][eq2] + 1);
-        var eq3eq6prop = eq3eq6svdst / (lookup.depth[3][eq3][eq6] + 1);
-        var eq4prop = eq4svdst / (lookup.depth[4][eq4] + 1);
-        var eq5prop = eq5svdst / (lookup.depth[5][eq5] + 1);
+        const eq1prop = eq1svdst / (lookup.depth[1][eq1] + 1);
+        const eq2prop = eq2svdst / (lookup.depth[2][eq2] + 1);
+        const eq3eq6prop = eq3eq6svdst / (lookup.depth[3][eq3][eq6] + 1);
+        const eq4prop = eq4svdst / (lookup.depth[4][eq4] + 1);
+        const eq5prop = eq5svdst / (lookup.depth[5][eq5] + 1);
 
         // 1.d - Multiply maximal scoring diff. by prop. of distance
         eq1msd *= eq1prop;
@@ -247,13 +247,13 @@ class CVSS40 {
         eq5msd *= eq5prop;
 
         // 2 - Compute mean
-        var mean = 0;
+        let mean = 0;
         if (lower != 0) {
             mean = (eq1msd + eq2msd + eq3eq6msd + eq4msd + eq5msd) / lower;
         }
 
         // 3 - Compute score
-        return Number(roundup(eqsv - mean));
+        return roundup(eqsv - mean);
     }
     /**
      * Gives the nomenclature of the current CVSS v4.0 object i.e. its structure
@@ -261,10 +261,10 @@ class CVSS40 {
      * 
      * @return {string} The nomenclature string.
      */
-    Nomenclature() {
-        const isDefined = ((metric) => this.Get(metric) != 'X');
-        var t = (['E']).some(isDefined);
-        var e = (['CR', 'IR', 'AR', 'MAV', 'MAC', 'MAT', 'MPR', 'MUI', 'MVC', 'MVI', 'MVA', 'MSC', 'MSI', 'MSA']).some(isDefined);
+    Nomenclature(): string {
+        const isDefined = ((metric: string): boolean => this.Get(metric) != 'X');
+        const t = (['E']).some(isDefined);
+        const e = (['CR', 'IR', 'AR', 'MAV', 'MAC', 'MAT', 'MPR', 'MUI', 'MVC', 'MVI', 'MVA', 'MSC', 'MSI', 'MSA']).some(isDefined);
 
         if (t) {
             if (e) {
@@ -278,15 +278,15 @@ class CVSS40 {
         return 'CVSS-B';
     }
 
-    #getReal(metric) {
+    private getReal(metric): string {
         if (['AV', 'AC', 'AT', 'PR', 'UI', 'VC', 'VI', 'VA', 'SC', 'SI', 'SA'].includes(metric)) {
-            var v = this.Get('M' + metric);
+            const v = this.Get('M' + metric);
             if (v != 'X') {
                 return v
             }
             return this.Get(metric);
         }
-        var v = this.Get(metric);
+        const v = this.Get(metric);
         if (v != 'X') {
             return v
         }
@@ -300,26 +300,26 @@ class CVSS40 {
                 return 'A';
         }
     }
-    #macrovector() {
-        var av = this.#getReal('AV');
-        var ac = this.#getReal('AC');
-        var at = this.#getReal('AT');
-        var pr = this.#getReal('PR');
-        var ui = this.#getReal('UI');
-        var vc = this.#getReal('VC');
-        var vi = this.#getReal('VI');
-        var va = this.#getReal('VA');
-        var sc = this.#getReal('SC');
-        var si = this.#getReal('SI');
-        var sa = this.#getReal('SA');
-        var e = this.#getReal('E');
-        var cr = this.#getReal('CR');
-        var ir = this.#getReal('IR');
-        var ar = this.#getReal('AR');
+    private macrovector(): string {
+        const av = this.getReal('AV');
+        const ac = this.getReal('AC');
+        const at = this.getReal('AT');
+        const pr = this.getReal('PR');
+        const ui = this.getReal('UI');
+        const vc = this.getReal('VC');
+        const vi = this.getReal('VI');
+        const va = this.getReal('VA');
+        const sc = this.getReal('SC');
+        const si = this.getReal('SI');
+        const sa = this.getReal('SA');
+        const e = this.getReal('E');
+        const cr = this.getReal('CR');
+        const ir = this.getReal('IR');
+        const ar = this.getReal('AR');
 
         // Compte MacroVectors
         // => EQ1
-        var eq1 = '0';
+        let eq1 = '0';
         if (av == 'N' && pr == 'N' && ui == 'N') {
             eq1 = '0';
         } else if ((av == 'N' || pr == 'N' || ui == 'N') && !(av == 'N' && pr == 'N' && ui == 'N') && !(av == 'P')) {
@@ -329,13 +329,13 @@ class CVSS40 {
         }
 
         // EQ2
-        var eq2 = '0';
+        let eq2 = '0';
         if (!(ac == 'L' && at == 'N')) {
             eq2 = '1';
         }
 
         // EQ3
-        var eq3 = '0';
+        let eq3 = '0';
         if (vc == 'H' && vi == 'H') {
             eq3 = '0';
         } else if (!(vc == 'H' && vi == 'H') && (vc == 'H' || vi == 'H' || va == 'H')) {
@@ -345,7 +345,7 @@ class CVSS40 {
         }
 
         // EQ4
-        var eq4 = '0';
+        let eq4 = '0';
         if (si == 'S' || sa == 'S') {
             eq4 = '0';
         } else if (!(si == 'S' || sa == 'S') && (sc == 'H' || si == 'H' || sa == 'H')) {
@@ -355,7 +355,7 @@ class CVSS40 {
         }
 
         // EQ5
-        var eq5 = '0';
+        let eq5 = '0';
         if (e == 'A' || e == 'X') {
             eq5 = '0';
         } else if (e == 'P') {
@@ -365,10 +365,10 @@ class CVSS40 {
         }
 
         // EQ6
-        var eq6 = '0';
-        var crh = (cr == 'H' || cr == 'X');
-        var irh = (ir == 'H' || ir == 'X');
-        var arh = (ar == 'H' || ar == 'X');
+        let eq6 = '0';
+        const crh = (cr == 'H' || cr == 'X');
+        const irh = (ir == 'H' || ir == 'X');
+        const arh = (ar == 'H' || ar == 'X');
         if ((crh && vc == 'H') || (irh && vi == 'H') || (arh && va == 'H')) {
             eq6 = '0';
         } else if (!(crh && vc == 'H') && !(irh && vi == 'H') && !(arh && va == 'H')) {
@@ -377,24 +377,24 @@ class CVSS40 {
 
         return eq1 + eq2 + eq3 + eq4 + eq5 + eq6;
     }
-    #severityDistance(metric, vecVal, mxVal) {
-        var values = lookup.sevIdx[metric];
+    private severityDistance(metric: string, vecVal: string, mxVal: string): number {
+        const values = lookup.sevIdx[metric];
         return values.indexOf(vecVal) - values.indexOf(mxVal);
     }
 };
 
-const getValue = function (partial, metric) {
-    var pts = partial.split('/');
+const getValue = function (partial: string, metric: string) {
+    const pts = partial.split('/');
     for (const pt of pts) {
-        [key, value] = pt.split(':');
-        if (key == metric) {
-            return value;
+        let pts = pt.split(':')
+        if (pts[0] == metric) {
+            return pts[1];
         }
     }
 }
 
-const roundup = function (score) {
-    return score.toFixed(1);
+const roundup = function (score: number) {
+    return +(score.toFixed(1));
 }
 
 /**
@@ -404,9 +404,9 @@ const roundup = function (score) {
  * @return {'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE'} The rating.
  * @throws {errors.OutOfBoundsScore} When the score is out of bounds.
  */
-const Rating = function (score) {
+export const Rating = function (score: number): 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE' {
     if (score < 0 || score > 10) {
-        throw new errors.OutOfBoundsScore();
+        throw new Error('score out of bounds');
     }
     if (score >= 9.0) {
         return 'CRITICAL';
@@ -422,5 +422,3 @@ const Rating = function (score) {
     }
     return 'NONE';
 }
-
-module.exports = { CVSS40, Rating };

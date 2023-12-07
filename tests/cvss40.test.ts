@@ -1,5 +1,4 @@
-const cvss40 = require('./cvss40');
-const errors = require('./errors');
+import * as cvss40  from '../src/cvss40';
 
 describe('CVSS v4.0 Section 7 test cases', () => {
     test('valid vectors', () => {
@@ -14,29 +13,29 @@ describe('CVSS v4.0 Section 7 test cases', () => {
     test('invalid vectors', () => {
         expect(() => {
             new cvss40.CVSS40('CVSS:4.0/AV:F/AC:L/AT:N/PR:N/UI:N/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N');
-        }).toThrow(errors.InvalidVector);
+        }).toThrow();
         expect(() => {
             new cvss40.CVSS40('CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N/E:A/E:X');
-        }).toThrow(errors.InvalidVector);
+        }).toThrow();
         expect(() => {
             new cvss40.CVSS40('CVSS:4.0/AV:N/AC:L/AT:N/PR:N/ui:N/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N');
-        }).toThrow(errors.InvalidVector);
+        }).toThrow();
         expect(() => {
             new cvss40.CVSS40('AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N');
-        }).toThrow(errors.InvalidVector);
+        }).toThrow();
         expect(() => {
             new cvss40.CVSS40('CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:L/SC:N/SI:N/SA:N');
-        }).toThrow(errors.InvalidVector);
+        }).toThrow();
         expect(() => {
             new cvss40.CVSS40('CVSS:4.0/AC:L/AV:N/PR:H/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N/CR:L/IR:X/AR:L/RE:H/MAV:A/MAC:H/MAT:N/MPR:N/MUI:P/AT:N/MVC:X/MVI:N/MVA:H/MSC:N/MSI:L/MSA:S/E:U/S:N/AU:N/R:I/V:C/U:Green');
-        }).toThrow(errors.InvalidVector);
+        }).toThrow();
         // Specific ones not from the specification, only to make sure of the full compliance
         expect(() => {
             new cvss40.CVSS40('');
-        }).toThrow(errors.InvalidVector);
+        }).toThrow();
         expect(() => {
             new cvss40.CVSS40('toto CVSS:4.0/AV:N/AC:L/AT:N/PR:H/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N toto');
-        }).toThrow(errors.InvalidVector);
+        }).toThrow();
     });
 });
 
