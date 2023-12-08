@@ -41,8 +41,8 @@ export class CVSS40 {
      */
     private parse(vector: string) {
         // Ensure input is valid according to the regular expression
-        let matches = [...vector.matchAll(re)][0];
-        if (matches == null) {
+        let matches = vector.matchAll(re).next().value;
+        if (matches == undefined) {
             throw new Error('invalid CVSS v4.0 vector');
         }
         // Skip prefix

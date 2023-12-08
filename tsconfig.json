@@ -1,11 +1,17 @@
 {
     "compilerOptions": {
-        "outDir": "./built",
+        "outDir": "dist",
         "allowJs": true,
-        "target": "es6"
+        "target": "es6",
+        "moduleResolution": "node",
+        "declaration": true
     },
     "include": [
         "./src/**/*",
-        "tests/cvss40.test.ts"
+        "./tests/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
     ]
 }
