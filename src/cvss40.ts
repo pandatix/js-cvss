@@ -20,12 +20,25 @@ export class CVSS40 {
         'S': 'X', 'AU': 'X', 'R': 'X', 'V': 'X', 'RE': 'X', 'U': 'X',
     };
 
+    /**
+     * Construct a CVSS v4.0 object, and parse the vector if provided.
+     * If not, the Base metrics is set to the default values (score = 0).
+     * 
+     * @param vector The vector to parse.
+     * @throws When the vector is invalid.
+     */
     constructor(vector = 'CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N') {
         this.parse(vector);
     }
 
-    // parse makes use of the regex for code simplicity, but we could
-    // use the `metrics` constant to provide better accurate error messages.
+    /**
+     * Parse the provided vector.
+     * Makes use of the regex for code simplicity, but we could use the
+     * `metrics` constant to provide better accurate error messages.
+     * 
+     * @param vector The vector to parse.
+     * @throws When the vector is invalid.
+     */
     private parse(vector: string) {
         // Ensure input is valid according to the regular expression
         let matches = [...vector.matchAll(re)][0];
@@ -48,7 +61,7 @@ export class CVSS40 {
     /**
      * Return the vector string representation of the CVSS v4.0 object.
      * 
-     * @return {string} The vector string representation.
+     * @return The vector string representation.
      */
     Vector() {
         let vector = 'CVSS:4.0';
@@ -65,9 +78,9 @@ export class CVSS40 {
     /**
      * Get the metric value given its value (e.g. 'AV').
      * 
-     * @param {string} metric The metric to get the value of.
-     * @return {string} The corresponding metric value.
-     * @throws {errors.InvalidMetric} Metric does not exist.
+     * @param metric The metric to get the value of.
+     * @return The corresponding metric value.
+     * @throws Metric does not exist.
      */
     Get(metric: string): string {
         const v = this._metrics[metric];
@@ -79,10 +92,9 @@ export class CVSS40 {
     /**
      * Set the metric value given its key and value (e.g. 'AV' and 'L').
      * 
-     * @param {string} metric The metric to set the value of.
-     * @param {string} value The corresponding metric value.
-     * @throws {errors.InvalidMetric} Metric does not exist.
-     * @throws {errors.InvalidMetricValue} Metric has invalid value.
+     * @param metric The metric to set the value of.
+     * @param value The corresponding metric value.
+     * @throws Metric does not exist or has an invalid value.
      */
     Set(metric: string, value: string) {
         for (const [om, values] of Object.entries(lookup.table23)) {
@@ -103,7 +115,7 @@ export class CVSS40 {
      * The implementation internals are largely based upon https://github.com/pandatix/go-cvss
      * submodule 40.
      * 
-     * @return {number} The score (between 0.0 and 10.0 both included).
+     * @return The score (between 0.0 and 10.0 both included).
      */
     Score(): number {
         // If the vulnerability does not affect the system AND the subsequent
@@ -259,7 +271,7 @@ export class CVSS40 {
      * Gives the nomenclature of the current CVSS v4.0 object i.e. its structure
      * according to the Base, Threat and Environmental metric groups.
      * 
-     * @return {string} The nomenclature string.
+     * @return The nomenclature string.
      */
     Nomenclature(): string {
         const isDefined = ((metric: string): boolean => this.Get(metric) != 'X');
@@ -400,9 +412,9 @@ const roundup = function (score: number) {
 /**
  * Give the corresponding rating of the provided score.
  * 
- * @param {string} score The score to rate. 
- * @return {'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE'} The rating.
- * @throws {errors.OutOfBoundsScore} When the score is out of bounds.
+ * @param score The score to rate. 
+ * @return The rating.
+ * @throws When the score is out of bounds.
  */
 export const Rating = function (score: number): 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE' {
     if (score < 0 || score > 10) {
