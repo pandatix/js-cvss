@@ -9,7 +9,7 @@
 	<a href="https://securityscorecards.dev/viewer/?uri=github.com/pandatix/js-cvss"><img src="https://img.shields.io/ossf-scorecard/github.com/pandatix/js-cvss?label=openssf%20scorecard&style=for-the-badge" alt="OpenSSF Scoreboard"></a>
 </div>
 
-js-cvss is another Common Vulnerability Scoring System (CVSS) implementation, in native JavaScript.
+js-cvss is another Common Vulnerability Scoring System (CVSS) implementation, in TypeScript.
 
 > **Note**
 >
