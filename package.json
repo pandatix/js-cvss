@@ -1,6 +1,6 @@
 {
   "name": "@pandatix/js-cvss",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "JavaScript implementation of the CVSS (Common Vulnerability Scoring System) standard from FIRST.ORG.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
