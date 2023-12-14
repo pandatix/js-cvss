@@ -109,6 +109,7 @@ export class CVSS40 {
         }
         throw new errors.InvalidMetric('4.0', metric);
     }
+    
     /**
      * Compute the CVSS v4.0 Score of the current object, given its metrics and their
      * corresponding values.
@@ -132,7 +133,7 @@ export class CVSS40 {
         const eq4 = Number(mv[3]);
         const eq5 = Number(mv[4]);
         const eq6 = Number(mv[5]);
-        const eqsv: number = mv[mv];
+        const eqsv: number = mvs[mv];
 
         // Compute EQs next lower MacroVector
         // -> As the lower the EQ value is the bigger, the next lower MacroVector
@@ -141,22 +142,22 @@ export class CVSS40 {
         let lower = 0;
         let eq1nlm = NaN;
         if (eq1 < 2) { // 2 = maximum level for EQ1
-            eq1nlm = mv[String(eq1 + 1) + String(eq2) + String(eq3) + String(eq4) + String(eq5) + String(eq6)];
+            eq1nlm = mvs[String(eq1 + 1) + String(eq2) + String(eq3) + String(eq4) + String(eq5) + String(eq6)];
             lower++;
         }
         let eq2nlm = NaN;
         if (eq2 < 1) { // 1 = maximum level for EQ2
-            eq2nlm = mv[String(eq1) + String(eq2 + 1) + String(eq3) + String(eq4) + String(eq5) + String(eq6)];
+            eq2nlm = mvs[String(eq1) + String(eq2 + 1) + String(eq3) + String(eq4) + String(eq5) + String(eq6)];
             lower++;
         }
         let eq4nlm = NaN;
         if (eq4 < 2) { // 2 = maximum level for EQ4
-            eq4nlm = mv[String(eq1) + String(eq2) + String(eq3) + String(eq4 + 1) + String(eq5) + String(eq6)];
+            eq4nlm = mvs[String(eq1) + String(eq2) + String(eq3) + String(eq4 + 1) + String(eq5) + String(eq6)];
             lower++;
         }
         let eq5nlm = NaN;
         if (eq5 < 2) { // 2 = maximum level for EQ5
-            eq5nlm = mv[String(eq1) + String(eq2) + String(eq3) + String(eq4) + String(eq5 + 1) + String(eq6)];
+            eq5nlm = mvs[String(eq1) + String(eq2) + String(eq3) + String(eq4) + String(eq5 + 1) + String(eq6)];
             lower++;
         }
         // /!\ As EQ3 and EQ6 are related, we can't do the same as it could produce
@@ -165,19 +166,19 @@ export class CVSS40 {
         let eq3eq6nlm = NaN;
         if (eq3 == 1 && eq6 == 1) {
             // 11 -> 21
-            eq3eq6nlm = mv[String(eq1) + String(eq2) + String(eq3 + 1) + String(eq4) + String(eq5) + String(eq6)];
+            eq3eq6nlm = mvs[String(eq1) + String(eq2) + String(eq3 + 1) + String(eq4) + String(eq5) + String(eq6)];
             lower++;
         } else if (eq3 == 0 && eq6 == 1) {
             // 01 -> 11
-            eq3eq6nlm = mv[String(eq1) + String(eq2) + String(eq3 + 1) + String(eq4) + String(eq5) + String(eq6)];
+            eq3eq6nlm = mvs[String(eq1) + String(eq2) + String(eq3 + 1) + String(eq4) + String(eq5) + String(eq6)];
             lower++;
         } else if (eq3 == 1 && eq6 == 0) {
             // 10 -> 11
-            eq3eq6nlm = mv[String(eq1) + String(eq2) + String(eq3) + String(eq4) + String(eq5) + String(eq6 + 1)];
+            eq3eq6nlm = mvs[String(eq1) + String(eq2) + String(eq3) + String(eq4) + String(eq5) + String(eq6 + 1)];
             lower++;
         } else if (eq3 == 0 && eq6 == 0) {
             // 00 -> 01 OR 00 -> 10, takes the bigger
-            eq3eq6nlm = Math.max(mv[String(eq1) + String(eq2) + String(eq3 + 1) + String(eq4) + String(eq5) + String(eq6)], mv[String(eq1) + String(eq2) + String(eq3) + String(eq4) + String(eq5) + String(eq6 + 1)]);
+            eq3eq6nlm = Math.max(mvs[String(eq1) + String(eq2) + String(eq3 + 1) + String(eq4) + String(eq5) + String(eq6)], mvs[String(eq1) + String(eq2) + String(eq3) + String(eq4) + String(eq5) + String(eq6 + 1)]);
             lower++;
         }
 
@@ -209,24 +210,24 @@ export class CVSS40 {
                         const partial = [eq1mx, eq2mx, eq3eq6mx, eq4mx].join('/');
 
                         // Compute severity distances
-                        const avsvdst = this.severityDistance('AV', this.getReal('AV'), CVSS40.getValue(partial, 'AV'));
-                        const prsvdst = this.severityDistance('PR', this.getReal('PR'), CVSS40.getValue(partial, 'PR'));
-                        const uisvdst = this.severityDistance('UI', this.getReal('UI'), CVSS40.getValue(partial, 'UI'));
+                        const avsvdst = CVSS40.severityDistance('AV', this.getReal('AV'), CVSS40.getValue(partial, 'AV'));
+                        const prsvdst = CVSS40.severityDistance('PR', this.getReal('PR'), CVSS40.getValue(partial, 'PR'));
+                        const uisvdst = CVSS40.severityDistance('UI', this.getReal('UI'), CVSS40.getValue(partial, 'UI'));
 
-                        const acsvdst = this.severityDistance('AC', this.getReal('AC'), CVSS40.getValue(partial, 'AC'));
-                        const atsvdst = this.severityDistance('AT', this.getReal('AT'), CVSS40.getValue(partial, 'AT'));
+                        const acsvdst = CVSS40.severityDistance('AC', this.getReal('AC'), CVSS40.getValue(partial, 'AC'));
+                        const atsvdst = CVSS40.severityDistance('AT', this.getReal('AT'), CVSS40.getValue(partial, 'AT'));
 
-                        const vcsvdst = this.severityDistance('VC', this.getReal('VC'), CVSS40.getValue(partial, 'VC'));
-                        const visvdst = this.severityDistance('VI', this.getReal('VI'), CVSS40.getValue(partial, 'VI'));
-                        const vasvdst = this.severityDistance('VA', this.getReal('VA'), CVSS40.getValue(partial, 'VA'));
+                        const vcsvdst = CVSS40.severityDistance('VC', this.getReal('VC'), CVSS40.getValue(partial, 'VC'));
+                        const visvdst = CVSS40.severityDistance('VI', this.getReal('VI'), CVSS40.getValue(partial, 'VI'));
+                        const vasvdst = CVSS40.severityDistance('VA', this.getReal('VA'), CVSS40.getValue(partial, 'VA'));
 
-                        const scsvdst = this.severityDistance('SC', this.getReal('SC'), CVSS40.getValue(partial, 'SC'));
-                        const sisvdst = this.severityDistance('SI', this.getReal('SI'), CVSS40.getValue(partial, 'SI'));
-                        const sasvdst = this.severityDistance('SA', this.getReal('SA'), CVSS40.getValue(partial, 'SA'));
+                        const scsvdst = CVSS40.severityDistance('SC', this.getReal('SC'), CVSS40.getValue(partial, 'SC'));
+                        const sisvdst = CVSS40.severityDistance('SI', this.getReal('SI'), CVSS40.getValue(partial, 'SI'));
+                        const sasvdst = CVSS40.severityDistance('SA', this.getReal('SA'), CVSS40.getValue(partial, 'SA'));
 
-                        const crsvdst = this.severityDistance('CR', this.getReal('CR'), CVSS40.getValue(partial, 'CR'));
-                        const irsvdst = this.severityDistance('IR', this.getReal('IR'), CVSS40.getValue(partial, 'IR'));
-                        const arsvdst = this.severityDistance('AR', this.getReal('AR'), CVSS40.getValue(partial, 'AR'));
+                        const crsvdst = CVSS40.severityDistance('CR', this.getReal('CR'), CVSS40.getValue(partial, 'CR'));
+                        const irsvdst = CVSS40.severityDistance('IR', this.getReal('IR'), CVSS40.getValue(partial, 'IR'));
+                        const arsvdst = CVSS40.severityDistance('AR', this.getReal('AR'), CVSS40.getValue(partial, 'AR'));
 
                         if ([avsvdst, prsvdst, uisvdst, acsvdst, atsvdst, vcsvdst, visvdst, vasvdst, scsvdst, sisvdst, sasvdst, crsvdst, irsvdst, arsvdst].some((met) => met < 0)) {
                             continue;
@@ -391,7 +392,7 @@ export class CVSS40 {
 
         return eq1 + eq2 + eq3 + eq4 + eq5 + eq6;
     }
-    private severityDistance(metric: string, vecVal: string, mxVal: string): number {
+    private static severityDistance(metric: string, vecVal: string, mxVal: string): number {
         const values = sevIdx[metric];
         return values.indexOf(vecVal) - values.indexOf(mxVal);
     }
@@ -412,8 +413,6 @@ export class CVSS40 {
 
     /**
      * Give the corresponding rating of the provided score.
-     * Compatible with CVSS v3.0, v3.1 and v4.0, but should not be
-     * used with CVSS v2.0 as its specification does not defines it.
      * 
      * @param score The score to rate. 
      * @return The rating.
@@ -582,7 +581,7 @@ const depth = {
 };
 
 // MacroVectors maximum score given each EQuivalency sets.
-const mv = {
+const mvs = {
     '000000': 10,
     '000001': 9.9,
     '000010': 9.8,
