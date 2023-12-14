@@ -24,3 +24,21 @@ It currently supports :
 > **Warning**
 >
 > It won't support CVSS v1.0, as despite it was a good CVSS start, it can't get vectorized, abbreviations and enumerations are not strongly specified, so the cohesion and interoperability can't be satisfied.
+
+## How to use
+
+From your project, you can add `@pandatix/js-cvss` to your NPM dependencies using the following.
+```bash
+npm install '@pandatix/js-cvss' -D
+```
+
+Then, from your code, import what you need (let's say `CVSS40``) and go on !
+
+```ts
+import { CVSS40 } from '@pandatix/js-cvss';
+
+...
+
+let vec = CVSS40('CVSS:4.0/AV:A/AC:H/AT:P/PR:L/UI:P/VC:H/VI:H/VA:H/SC:L/SI:L/SA:L');
+console.log(vec.Score());
+```
