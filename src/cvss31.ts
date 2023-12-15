@@ -84,11 +84,11 @@ export class CVSS31 {
      * @throws Metric does not exist.
      */
     Get(metric: string): string {
-        let value = this._metrics[metric];
-        if (value == undefined) {
+        const v = this._metrics[metric];
+        if (v == undefined) {
             throw new errors.InvalidMetric('3.1', metric);
         }
-        return value;
+        return v;
     }
 
     /**
