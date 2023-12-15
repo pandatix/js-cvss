@@ -16,7 +16,7 @@ js-cvss is another Common Vulnerability Scoring System (CVSS) implementation, in
 > Specified by [first.org](https://www.first.org/cvss/), the CVSS provides a way to capture the principal characteristics of a vulnerability and produce a numerical score reflecting its severity.
 
 It currently supports :
- - [ ] [CVSS 2.0](https://www.first.org/cvss/v2/guide)
+ - [X] [CVSS 2.0](https://www.first.org/cvss/v2/guide)
  - [X] [CVSS 3.0](https://www.first.org/cvss/v3.0/specification-document)
  - [X] [CVSS 3.1](https://www.first.org/cvss/v3.1/specification-document)
  - [X] [CVSS 4.0](https://www.first.org/cvss/v4.0/specification-document)
