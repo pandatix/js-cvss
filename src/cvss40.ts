@@ -98,16 +98,14 @@ export class CVSS40 {
      * @throws Metric does not exist or has an invalid value.
      */
     Set(metric: string, value: string) {
-        for (const [om, values] of Object.entries(table23)) {
-            if (om == metric) {
-                if (values.indexOf(value) != -1) {
-                    this._metrics[metric] = value;
-                    return;
-                }
-                throw new errors.InvalidMetricValue('4.0', metric, value);
-            }
+        const values: [string] = table23[metric];
+        if (values == undefined) {
+            throw new errors.InvalidMetric('4.0', metric);
         }
-        throw new errors.InvalidMetric('4.0', metric);
+        if (!values.includes(value)) {
+            throw new errors.InvalidMetricValue('4.0', metric, value);
+        }
+        this._metrics[metric] = value;
     }
     
     /**
