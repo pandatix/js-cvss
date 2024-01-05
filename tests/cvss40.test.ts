@@ -182,6 +182,12 @@ describe('Score', () => {
             score: 5.8,
             nomenclature: 'CVSS-BE',
         },
+        {
+            name: 'RedHatProductSecurity/cvss-v4-calculator/#48',
+            vector: 'CVSS:4.0/AV:N/AC:L/AT:P/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N/E:U',
+            score: 0.4,
+            nomenclature: 'CVSS-BT'
+        },
     ];
 
     testCases.forEach((testCase) => {

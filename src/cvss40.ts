@@ -406,7 +406,7 @@ export class CVSS40 {
     }
 
     private static roundup(score: number) {
-        return +(score.toFixed(1));
+        return +(score * 10).toFixed()/10
     }
 
     /**
