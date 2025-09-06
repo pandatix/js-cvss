@@ -9,5 +9,8 @@ export default defineConfig({
       provider: 'v8',
       exclude: ['tests/**', 'dist/**']
     }
+  },
+  esbuild: {
+    target: 'es2020'
   }
 })
