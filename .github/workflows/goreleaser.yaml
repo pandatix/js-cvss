@@ -28,7 +28,7 @@ jobs:
           check-latest: true
 
       - name: Install Syft
-        uses: anchore/sbom-action/download-syft@f8bdd1d8ac5e901a77a92f111440fdb1b593736b # v0.20.6
+        uses: anchore/sbom-action/download-syft@aa0e114b2e19480f157109b9922bda359bd98b90 # v0.20.8
 
       - name: Setup Node
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
